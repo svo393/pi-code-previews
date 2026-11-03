@@ -14,7 +14,11 @@ import {
 import { defaultCodePreviewSettings } from "./defaults";
 import { formatOnOff } from "./on-off";
 import { cloneCodePreviewSettings, codePreviewSettings } from "./state";
-import type { CodePreviewEditableSettingId, CodePreviewSettings } from "./types";
+import {
+  PI_SHIKI_THEME,
+  type CodePreviewEditableSettingId,
+  type CodePreviewSettings,
+} from "./types";
 
 export function formatSettingValue(
   settings: CodePreviewSettings,
@@ -22,9 +26,14 @@ export function formatSettingValue(
 ): string {
   if (id === "resetToDefaults") return "keep current";
   if (id === "tools") return formatToolsSettingValue(settings.tools);
+  if (id === "shikiTheme") return formatShikiTheme(settings.shikiTheme);
   const value = settings[id];
   if (typeof value === "boolean") return formatOnOff(value);
   return String(value);
+}
+
+export function formatShikiTheme(theme: string): string {
+  return theme === PI_SHIKI_THEME ? "pi (follow active theme)" : theme;
 }
 
 export function normalizeSettings(

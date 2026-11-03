@@ -12,6 +12,9 @@ export type ToolCallBackgroundMode = (typeof TOOL_CALL_BACKGROUND_MODES)[number]
 export const PATH_ICON_MODES = ["unicode", "nerd", "off"] as const;
 export type PathIconMode = (typeof PATH_ICON_MODES)[number];
 
+/** Special Shiki theme value that follows the active pi theme's syntax colors. */
+export const PI_SHIKI_THEME = "pi";
+
 export interface CodePreviewSettings {
   shikiTheme: string;
   diffIntensity: DiffBackgroundIntensity;

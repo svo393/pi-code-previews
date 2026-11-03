@@ -38,6 +38,7 @@ test("settings normalization and reset preserve defaults", () => {
   assert.equal(normalized.findResultPreview, false);
   assert.equal(normalized.lsResultPreview, false);
   assert.equal(normalized.wordEmphasis, defaultCodePreviewSettings.wordEmphasis);
+  assert.equal(normalized.shikiTheme, defaultCodePreviewSettings.shikiTheme);
   assert.equal(normalized.readCollapsedLines, defaultCodePreviewSettings.readCollapsedLines);
   assert.deepEqual(normalized.tools, ["bash", "read", "write", "edit", "grep", "find", "ls"]);
   assert.deepEqual(
@@ -66,6 +67,7 @@ test("settings normalization falls back to accumulated settings for invalid over
   assert.equal(validOverride.shikiTheme, "dark-plus");
   assert.equal(validOverride.readCollapsedLines, 20);
   assert.equal(updateSetting(validOverride, "wordEmphasis", "all").wordEmphasis, "all");
+  assert.equal(normalizeSettings({ shikiTheme: "pi" }, fallback).shikiTheme, "pi");
   assert.equal(updateSetting(validOverride, "readContentPreview", "off").readContentPreview, false);
   assert.equal(
     updateSetting(validOverride, "writeContentPreview", "off").writeContentPreview,

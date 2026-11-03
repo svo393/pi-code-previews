@@ -1,16 +1,20 @@
 import type { Theme } from "@earendil-works/pi-coding-agent";
-import { bundledThemesInfo, createHighlighter } from "shiki";
+import { bundledThemesInfo, createHighlighter, type ThemeRegistration } from "shiki";
 import { positiveEnvInteger } from "../config/env";
 import { hashString } from "../cache/hash";
 import { codePreviewSettings } from "../settings/index";
+import { PI_SHIKI_THEME } from "../settings/types";
 import { expandPreviewTabs } from "../shared/preview-tabs";
 import { escapeControlChars } from "../shared/terminal-text";
 import { normalizePreviewLanguageAlias } from "./language";
+import { canCreatePiShikiTheme, createPiShikiTheme } from "./pi-theme";
 
 let shikiHighlighter: Awaited<ReturnType<typeof createHighlighter>> | undefined;
 let shikiInitVersion = 0;
 let shikiHighlighterGeneration = 0;
-let shikiInitializingTheme: string | undefined;
+let shikiInitializingTheme: ResolvedShikiTheme | undefined;
+let shikiLoadedThemeKey: string | undefined;
+let shikiLoadedThemeLight = false;
 let shikiStatusVersion = 0;
 let renderCacheChars = 0;
 const loadedShikiLanguages = new Set<string>();
@@ -19,6 +23,13 @@ const renderCache = new Map<string, { value: string[]; size: number }>();
 const languageLoadCallbacks = new Map<string, Set<() => void>>();
 const highlighterReadyCallbacks = new Set<() => void>();
 const shikiThemeTypes = new Map(bundledThemesInfo.map((theme) => [theme.id, theme.type]));
+
+type ResolvedShikiTheme = {
+  key: string;
+  name: string;
+  input: string | ThemeRegistration;
+  light: boolean;
+};
 
 const MAX_HIGHLIGHT_CHARS = positiveEnvInteger("CODE_PREVIEW_MAX_HIGHLIGHT_CHARS", 80000);
 const CACHE_LIMIT = positiveEnvInteger("CODE_PREVIEW_CACHE_LIMIT", 192);
@@ -36,13 +47,21 @@ const PRELOADED_SHIKI_LANGUAGES = [
   "yaml",
 ] as const;
 
-export async function initializeShiki(theme: string) {
+export async function initializeShiki(theme: string, piTheme?: Theme) {
+  const resolved = resolveShikiTheme(theme, piTheme);
+  if (!resolved) return;
+  await initializeShikiResolved(resolved);
+}
+
+async function initializeShikiResolved(resolved: ResolvedShikiTheme) {
   if (!codePreviewSettings.syntaxHighlighting) return;
+  if (shikiHighlighter && shikiLoadedThemeKey === resolved.key) return;
+  if (shikiInitializingTheme?.key === resolved.key) return;
   const initVersion = ++shikiInitVersion;
-  shikiInitializingTheme = theme;
+  shikiInitializingTheme = resolved;
   try {
     const nextHighlighter = await createHighlighter({
-      themes: [theme],
+      themes: [resolved.input],
       langs: [...PRELOADED_SHIKI_LANGUAGES],
     });
     if (initVersion !== shikiInitVersion) {
@@ -52,6 +71,8 @@ export async function initializeShiki(theme: string) {
 
     const previousHighlighter = shikiHighlighter;
     shikiHighlighter = nextHighlighter;
+    shikiLoadedThemeKey = resolved.key;
+    shikiLoadedThemeLight = resolved.light;
     shikiInitializingTheme = undefined;
     shikiHighlighterGeneration++;
     bumpShikiStatusVersion();
@@ -63,6 +84,7 @@ export async function initializeShiki(theme: string) {
   } catch (error) {
     if (initVersion !== shikiInitVersion) return;
     shikiInitializingTheme = undefined;
+    shikiLoadedThemeKey = undefined;
     console.warn(
       "[pi-code-previews] Shiki failed to initialize; previews will be plain text.",
       error,
@@ -86,22 +108,25 @@ export function renderHighlightedText(
   const plain = () =>
     normalized.split("\n").map((line) => theme.fg("toolOutput", escapeControlChars(line)));
   if (!codePreviewSettings.syntaxHighlighting || !lang) return plain();
-  return renderWithShiki(normalized, lang, invalidate) ?? plain();
+  return renderWithShiki(normalized, lang, theme, invalidate) ?? plain();
 }
 
 export function renderWithShiki(
   code: string,
   lang: string | undefined,
+  theme?: Theme,
   invalidate?: () => void,
 ): string[] | undefined {
   if (!codePreviewSettings.syntaxHighlighting || !lang || shouldSkipHighlight(code))
     return undefined;
-  if (!shikiHighlighter) {
-    requestHighlighterInit(codePreviewSettings.shikiTheme, invalidate);
+  const resolved = resolveConfiguredShikiTheme(theme);
+  if (!resolved) return undefined;
+  if (!shikiHighlighter || shikiLoadedThemeKey !== resolved.key) {
+    requestHighlighterInit(resolved, invalidate);
     return undefined;
   }
   const shikiLang = normalizeShikiLanguage(lang);
-  const cacheKey = `${codePreviewSettings.shikiTheme}\0${shikiLang}\0${code.length}\0${hashString(code)}`;
+  const cacheKey = `${resolved.key}\0${shikiLang}\0${code.length}\0${hashString(code)}`;
   const cached = renderCache.get(cacheKey);
   if (cached) {
     renderCache.delete(cacheKey);
@@ -112,7 +137,7 @@ export function renderWithShiki(
     if (!loadedShikiLanguages.has(shikiLang)) requestLanguageLoad(shikiLang, invalidate);
     const tokens = shikiHighlighter.codeToTokensBase(code, {
       lang: shikiLang as never,
-      theme: codePreviewSettings.shikiTheme as never,
+      theme: resolved.name as never,
     });
     const rendered = tokens.map((line) =>
       normalizeShikiContrast(line.map((token) => ansiFromToken(token)).join("")),
@@ -122,6 +147,33 @@ export function renderWithShiki(
   } catch {
     return undefined;
   }
+}
+
+function resolveConfiguredShikiTheme(theme: Theme | undefined): ResolvedShikiTheme | undefined {
+  const configured = codePreviewSettings.shikiTheme;
+  return (
+    resolveShikiTheme(configured, theme) ??
+    (configured === PI_SHIKI_THEME ? resolveShikiTheme("dark-plus") : undefined)
+  );
+}
+
+function resolveShikiTheme(theme: string, piTheme?: Theme): ResolvedShikiTheme | undefined {
+  if (theme === PI_SHIKI_THEME) {
+    if (!canCreatePiShikiTheme(piTheme)) return undefined;
+    const derived = createPiShikiTheme(piTheme);
+    return {
+      key: `${PI_SHIKI_THEME}:${derived.key}`,
+      name: PI_SHIKI_THEME,
+      input: derived.registration,
+      light: derived.light,
+    };
+  }
+  return {
+    key: theme,
+    name: theme,
+    input: theme,
+    light: shikiThemeTypes.get(theme) === "light",
+  };
 }
 
 export function shouldSkipHighlight(text: string): boolean {
@@ -187,10 +239,13 @@ function renderedCharSize(value: string[]): number {
   return total;
 }
 
-function requestHighlighterInit(theme: string, invalidate: (() => void) | undefined): void {
+function requestHighlighterInit(
+  resolved: ResolvedShikiTheme,
+  invalidate: (() => void) | undefined,
+): void {
   if (invalidate) highlighterReadyCallbacks.add(invalidate);
-  if (shikiInitializingTheme === theme) return;
-  void initializeShiki(theme);
+  if (shikiInitializingTheme?.key === resolved.key) return;
+  void initializeShikiResolved(resolved);
 }
 
 function notifyHighlighterReady(): void {
@@ -235,12 +290,14 @@ export function normalizeShikiLanguage(lang: string): string {
   return normalizePreviewLanguageAlias(lang);
 }
 
-export function isLightShikiTheme(theme: string): boolean {
+export function isLightShikiTheme(theme: string, piTheme?: Theme): boolean {
+  if (theme === PI_SHIKI_THEME)
+    return canCreatePiShikiTheme(piTheme) && createPiShikiTheme(piTheme).light;
   return shikiThemeTypes.get(theme) === "light";
 }
 
 function normalizeShikiContrast(ansi: string): string {
-  if (isLightShikiTheme(codePreviewSettings.shikiTheme)) return ansi;
+  if (shikiLoadedThemeLight) return ansi;
   return ansi.replace(/\x1b\[([0-9;]*)m/g, (seq, params: string) =>
     isLowContrastFg(params) ? "\x1b[38;2;139;148;158m" : seq,
   );

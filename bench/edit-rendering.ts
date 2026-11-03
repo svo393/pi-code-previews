@@ -62,7 +62,7 @@ setCodePreviewSettings({
   toolCallTiming: false,
   wordEmphasis: "smart",
 });
-await initializeShiki(codePreviewSettings.shikiTheme);
+await initializeShiki(codePreviewSettings.shikiTheme, theme);
 
 try {
   printBenchHeader("edit renderer end-to-end");

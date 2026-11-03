@@ -26,6 +26,7 @@ test("settings UI item values are handled by updateSetting", () => {
     updateSetting(defaultCodePreviewSettings, "shikiTheme", "github-dark").shikiTheme,
     "github-dark",
   );
+  assert.equal(updateSetting(defaultCodePreviewSettings, "shikiTheme", "pi").shikiTheme, "pi");
   assert.equal(
     updateSetting(defaultCodePreviewSettings, "diffIntensity", "medium").diffIntensity,
     "medium",

@@ -122,6 +122,16 @@ export function benchTheme(): Theme {
     error: "\x1b[38;2;255;110;120m",
     muted: "\x1b[38;2;140;145;155m",
     success: "\x1b[38;2;95;210;130m",
+    syntaxComment: "\x1b[38;2;92;99;112m",
+    syntaxFunction: "\x1b[38;2;114;190;255m",
+    syntaxKeyword: "\x1b[38;2;215;164;244m",
+    syntaxNumber: "\x1b[38;2;255;160;119m",
+    syntaxOperator: "\x1b[38;2;88;201;195m",
+    syntaxPunctuation: "\x1b[38;2;177;184;198m",
+    syntaxString: "\x1b[38;2;153;196;121m",
+    syntaxType: "\x1b[38;2;214;179;115m",
+    syntaxVariable: "\x1b[38;2;255;155;168m",
+    text: "\x1b[38;2;177;184;198m",
     toolDiffAdded: "\x1b[38;2;95;210;130m",
     toolDiffContext: "\x1b[38;2;200;205;215m",
     toolDiffRemoved: "\x1b[38;2;255;110;120m",
@@ -131,6 +141,7 @@ export function benchTheme(): Theme {
   };
   const bgAnsi: Record<string, string> = {
     toolErrorBg: "\x1b[48;2;45;18;24m",
+    toolPendingBg: "\x1b[48;2;47;51;61m",
     toolSuccessBg: "\x1b[48;2;18;40;26m",
   };
   return {

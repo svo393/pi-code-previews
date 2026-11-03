@@ -2,6 +2,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth, type Component } from "@earendil-works/pi-tui";
 import { codePreviewSettings } from "../settings/index";
 import { formatOnOff } from "../settings/on-off";
+import { formatShikiTheme } from "../settings/values";
 import { getSettingsPath } from "../settings/store";
 import { getShikiStatus } from "../syntax/shiki";
 import { formatEnabledCodePreviewTools } from "../tools/selection";
@@ -22,7 +23,7 @@ export function registerHealthCommand(pi: ExtensionAPI): void {
       const lines = [
         "Code preview health",
         `Shiki initialized: ${status.initialized ? "yes" : "no"}`,
-        `Shiki theme: ${codePreviewSettings.shikiTheme}`,
+        `Shiki theme: ${formatShikiTheme(codePreviewSettings.shikiTheme)}`,
         `Syntax highlighting: ${formatOnOff(codePreviewSettings.syntaxHighlighting)}`,
         `Tool call background: ${codePreviewSettings.toolCallBackground}`,
         `Tool call timing: ${formatOnOff(codePreviewSettings.toolCallTiming)}`,

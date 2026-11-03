@@ -70,7 +70,8 @@ export const ADVANCED_SETTING_IDS = [
 const CODE_PREVIEW_SETTING_ITEM_DEFINITIONS = {
   shikiTheme: {
     label: "Syntax theme",
-    description: "Theme used for Shiki syntax highlighting in code previews.",
+    description:
+      "Use the active pi theme's syntax colors, or pick a bundled Shiki theme for code previews.",
   },
   diffIntensity: {
     label: "Diff background",

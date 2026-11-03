@@ -1,5 +1,6 @@
 import { bundledThemes } from "shiki";
 import { parsePositiveInteger } from "../config/env";
+import { PI_SHIKI_THEME } from "./types";
 import {
   isCodePreviewToolName,
   parseCodePreviewTools,
@@ -67,7 +68,7 @@ function positiveIntegerSetting<K extends NumberSettingKey>(
 }
 
 export const CODE_PREVIEW_SETTING_DEFINITIONS = {
-  shikiTheme: validatedSetting("shikiTheme", isBundledThemeName),
+  shikiTheme: validatedSetting("shikiTheme", isShikiThemeName),
   diffIntensity: validatedSetting("diffIntensity", isDiffBackgroundIntensity),
   wordEmphasis: validatedSetting("wordEmphasis", isDiffWordEmphasis),
   toolCallBackground: {
@@ -182,6 +183,10 @@ function isStringOption<const T extends readonly string[]>(
   value: unknown,
 ): value is T[number] {
   return typeof value === "string" && (options as readonly string[]).includes(value);
+}
+
+export function isShikiThemeName(value: unknown): value is string {
+  return value === PI_SHIKI_THEME || isBundledThemeName(value);
 }
 
 export function isBundledThemeName(value: unknown): value is string {

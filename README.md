@@ -90,7 +90,7 @@ You can set defaults in `.pi/settings.json`:
 ```json
 {
   "codePreview": {
-    "shikiTheme": "dark-plus",
+    "shikiTheme": "pi",
     "wordEmphasis": "all",
     "toolCallBackground": "border",
     "toolCallTiming": true,
@@ -114,7 +114,7 @@ You can set defaults in `.pi/settings.json`:
 Optional defaults can be set before pi starts:
 
 ```bash
-CODE_PREVIEW_THEME=github-dark
+CODE_PREVIEW_THEME=pi # pi (match the active pi theme) or a bundled Shiki theme such as github-dark
 CODE_PREVIEW_DIFF_INTENSITY=subtle # subtle, medium, or off
 CODE_PREVIEW_READ_LINES=20
 CODE_PREVIEW_READ_CONTENT=false # true/false, on/off, yes/no, or 1/0
@@ -140,6 +140,10 @@ CODE_PREVIEW_TOOLS=write,edit,grep # comma/space list, all, or none
 ```
 
 `CODE_PREVIEW_TOOLS` overrides `codePreview.tools` for the current pi process.
+
+The default `shikiTheme` is `pi`, which derives code-preview colors from the active pi theme's
+`syntax*` colors so previews match the rest of the interface. Set it to any bundled Shiki theme
+name to use that palette instead.
 
 When content/result/diff previews are disabled, collapsed successful output or code previews are hidden while the tool call stays visible; use pi's expand shortcut to view them on demand. `CODE_PREVIEW_WRITE_CONTENT=false` hides collapsed write content and write diffs, and `CODE_PREVIEW_EDIT_DIFF=false` hides collapsed proposed/applied edit diffs. `CODE_PREVIEW_BASH_RESULTS=false` applies to all successful `bash` output, while grep/find/ls result toggles also hide matching `bash` commands that start with `grep`, `find`, or `ls`.
 

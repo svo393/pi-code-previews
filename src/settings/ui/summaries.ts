@@ -1,9 +1,10 @@
 import type { CodePreviewSettings } from "../types";
 import { formatOnOff } from "../on-off";
+import { formatShikiTheme } from "../values";
 import { ALL_CODE_PREVIEW_TOOLS } from "../../tools/names";
 
 export function summarizeAppearance(settings: CodePreviewSettings): string {
-  return `${settings.shikiTheme} · syntax ${formatOnOff(settings.syntaxHighlighting)} · timing ${formatOnOff(settings.toolCallTiming)}`;
+  return `${formatShikiTheme(settings.shikiTheme)} · syntax ${formatOnOff(settings.syntaxHighlighting)} · timing ${formatOnOff(settings.toolCallTiming)}`;
 }
 
 export function summarizeDiffPreviews(settings: CodePreviewSettings): string {

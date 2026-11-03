@@ -11,6 +11,7 @@ import {
 import { bundledThemes } from "shiki";
 import { SETTINGS_GROUP_ID_PREFIX } from "./registry";
 import { ON_OFF_VALUES, formatOnOff } from "../on-off";
+import { PI_SHIKI_THEME } from "../types";
 import {
   ALL_CODE_PREVIEW_TOOLS,
   parseCodePreviewTools,
@@ -144,9 +145,12 @@ export class ThemeSelectSubmenu extends Container {
   constructor(currentTheme: string, done: (selectedValue?: string) => void) {
     super();
 
-    const themes: SelectItem[] = Object.keys(bundledThemes)
-      .sort()
-      .map((theme) => ({ value: theme, label: theme }));
+    const themes: SelectItem[] = [
+      { value: PI_SHIKI_THEME, label: "pi (follow active theme)" },
+      ...Object.keys(bundledThemes)
+        .sort()
+        .map((theme) => ({ value: theme, label: theme })),
+    ];
 
     this.selectList = new SelectList(themes, 12, getSelectListTheme(), {
       minPrimaryColumnWidth: 16,
@@ -160,7 +164,9 @@ export class ThemeSelectSubmenu extends Container {
     this.selectList.onCancel = () => done(undefined);
 
     this.addChild(new Text("Syntax theme", 0, 0));
-    this.addChild(new Text("Select a Shiki theme for code previews.", 0, 0));
+    this.addChild(
+      new Text("Use the active pi theme's syntax colors or a bundled Shiki theme.", 0, 0),
+    );
     this.addChild(new Spacer(1));
     this.addChild(this.selectList);
     this.addChild(new Spacer(1));

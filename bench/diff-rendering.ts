@@ -48,7 +48,7 @@ const cases = makeCases();
 const largeScenarios = makeLargeScenarios();
 const previousSettings = { ...codePreviewSettings };
 
-await initializeShiki(codePreviewSettings.shikiTheme);
+await initializeShiki(codePreviewSettings.shikiTheme, benchTheme());
 try {
   printBenchHeader("diff rendering");
 

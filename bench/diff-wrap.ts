@@ -29,7 +29,7 @@ const theme = benchTheme();
 const previousSettings = { ...codePreviewSettings };
 
 setCodePreviewSettings({ ...codePreviewSettings, syntaxHighlighting: true });
-await initializeShiki(codePreviewSettings.shikiTheme);
+await initializeShiki(codePreviewSettings.shikiTheme, theme);
 try {
   printBenchHeader("diff component wrapping");
   const renderedCases = renderCases(makeWrapCases());

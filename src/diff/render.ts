@@ -58,7 +58,7 @@ function renderDiff(diff: string, options: DiffRenderOptions): string {
   const out: string[] = [];
   const lang = options.syntaxHighlight ? options.lang : undefined;
   const highlightedLines = lang
-    ? highlightDiffLineRuns(parsedLines, lang, options.invalidate)
+    ? highlightDiffLineRuns(parsedLines, lang, options.theme, options.invalidate)
     : parsedLines.map(() => undefined);
 
   for (let i = 0; i < lines.length; i++) {
@@ -137,7 +137,7 @@ function renderChangeBlock(
       lineNumberWidth,
     );
     const match = emphasis.get(index);
-    return match ? emphasizeChangedSpans(rendered, match.ranges, match.kind) : rendered;
+    return match ? emphasizeChangedSpans(rendered, match.ranges, match.kind, theme) : rendered;
   });
 }
 
@@ -148,6 +148,7 @@ function dimAnsi(text: string): string {
 function highlightDiffLineRuns(
   lines: Array<ParsedDiffLine | null>,
   lang: string,
+  theme: Theme,
   invalidate?: () => void,
 ): Array<string | undefined> {
   const highlighted: Array<string | undefined> = lines.map(() => undefined);
@@ -164,7 +165,7 @@ function highlightDiffLineRuns(
       .slice(start, end)
       .map((line) => expandPreviewTabs(line?.content ?? ""))
       .join("\n");
-    const rendered = renderWithShiki(source, lang, invalidate);
+    const rendered = renderWithShiki(source, lang, theme, invalidate);
     if (rendered) {
       for (let index = start; index < end; index++) highlighted[index] = rendered[index - start];
     }

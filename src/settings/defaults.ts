@@ -1,22 +1,23 @@
 import { booleanEnv, parsePositiveInteger, positiveEnvInteger } from "../config/env";
 import { ALL_CODE_PREVIEW_TOOLS } from "../tools/names";
 import {
-  isBundledThemeName,
   isDiffBackgroundIntensity,
   isDiffWordEmphasis,
   isPathIconMode,
+  isShikiThemeName,
 } from "./definitions";
 import { parseToolCallBackgroundMode } from "./tool-call-background";
-import type {
-  CodePreviewSettings,
-  DiffBackgroundIntensity,
-  DiffWordEmphasis,
-  PathIconMode,
-  ToolCallBackgroundMode,
+import {
+  PI_SHIKI_THEME,
+  type CodePreviewSettings,
+  type DiffBackgroundIntensity,
+  type DiffWordEmphasis,
+  type PathIconMode,
+  type ToolCallBackgroundMode,
 } from "./types";
 
 export const defaultCodePreviewSettings: CodePreviewSettings = {
-  shikiTheme: envTheme("CODE_PREVIEW_THEME", "dark-plus"),
+  shikiTheme: envTheme("CODE_PREVIEW_THEME", PI_SHIKI_THEME),
   diffIntensity: envDiffIntensity("CODE_PREVIEW_DIFF_INTENSITY", "subtle"),
   wordEmphasis: envDiffWordEmphasis("CODE_PREVIEW_WORD_EMPHASIS", "all"),
   toolCallBackground: envToolCallBackgroundMode("CODE_PREVIEW_TOOL_CALL_BACKGROUND", "on"),
@@ -43,7 +44,7 @@ export const defaultCodePreviewSettings: CodePreviewSettings = {
 
 function envTheme(name: string, fallback: string): string {
   const value = process.env[name];
-  return isBundledThemeName(value) ? value : fallback;
+  return isShikiThemeName(value) ? value : fallback;
 }
 
 function envEditLines(name: string, fallback: number | "all"): number | "all" {

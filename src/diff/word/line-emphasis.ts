@@ -1,3 +1,4 @@
+import type { Theme } from "@earendil-works/pi-coding-agent";
 import { codePreviewSettings } from "../../settings/index";
 import type { DiffWordEmphasis } from "../../settings/types";
 import { injectVisibleRanges } from "../../shared/terminal-text";
@@ -26,13 +27,14 @@ export function emphasizeChangedSpans(
   line: string,
   ranges: Array<[number, number]>,
   kind: "add" | "remove",
+  theme?: Theme,
 ): string {
   if (ranges.length === 0) return line;
   const codeStart = findCodeStart(line);
   return (
     line.slice(0, codeStart) +
     injectVisibleRanges(line.slice(codeStart), ranges, {
-      open: wordEmphasis(kind),
+      open: wordEmphasis(kind, theme),
       close: "\x1b[49m",
       reopenAfterSgr: (sequence) => sequence === "\x1b[39m" || sequence === "\x1b[22m",
     })
@@ -51,8 +53,8 @@ function findCodeStart(line: string): number {
   return index;
 }
 
-function wordEmphasis(kind: "add" | "remove"): string {
-  if (isLightShikiTheme(codePreviewSettings.shikiTheme)) {
+function wordEmphasis(kind: "add" | "remove", theme?: Theme): string {
+  if (isLightShikiTheme(codePreviewSettings.shikiTheme, theme)) {
     return kind === "add" ? "\x1b[48;2;194;209;194m" : "\x1b[48;2;216;182;182m";
   }
   return kind === "add" ? "\x1b[48;2;64;132;82m" : "\x1b[48;2;148;62;70m";
