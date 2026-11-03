@@ -53,6 +53,9 @@ test("createPiShikiTheme uses the pi theme syntax colors", () => {
   assert.equal(ruleForeground(derived.registration, "string"), "#99c479");
   assert.equal(ruleForeground(derived.registration, "comment"), "#5c6370");
   assert.equal(ruleForeground(derived.registration, "entity.name.function"), "#72beff");
+  assert.equal(ruleForeground(derived.registration, "variable.other.property"), "#ff9ba8");
+  assert.equal(ruleForeground(derived.registration, "variable.other.readwrite"), "#b1b8c6");
+  assert.equal(ruleForeground(derived.registration, "support.class.component"), "#72beff");
 });
 
 test("createPiShikiTheme detects light themes from the theme background", () => {
@@ -93,7 +96,7 @@ test("pi themes render with their own syntax colors", async () => {
   const rendered =
     renderWithShiki("const value: string = 42; // note", "typescript", theme)?.[0] ?? "";
   assert.match(rendered, /\x1b\[38;2;215;164;244mconst/);
-  assert.match(rendered, /\x1b\[38;2;255;155;168mvalue/);
+  assert.match(rendered, /\x1b\[38;2;177;184;198m[^\x1b]*value/);
   assert.match(rendered, /\x1b\[38;2;214;179;115m string/);
   assert.match(rendered, /\x1b\[38;2;88;201;195m=/);
   assert.match(rendered, /\x1b\[38;2;255;160;119m42/);
@@ -105,6 +108,41 @@ test("pi themes render with their own syntax colors", async () => {
 test("pi theme fallback is used only when the theme exposes color ANSI", () => {
   assert.equal(canCreatePiShikiTheme(piTheme()), true);
   assert.equal(canCreatePiShikiTheme({ fg: (_key, text) => text } as Theme), false);
+});
+
+test("pi themes apply the merged VS Code TextMate customizations", async () => {
+  const theme = piTheme();
+  setCodePreviewSettings({
+    ...codePreviewSettings,
+    shikiTheme: PI_SHIKI_THEME,
+    syntaxHighlighting: true,
+  });
+  await initializeShiki(PI_SHIKI_THEME, theme);
+
+  const code = [
+    'import { readFile as read } from "node:fs";',
+    "const obj = { key: value };",
+    "function greet(user: User) {",
+    "  const t = typeof user.name;",
+    "  return new Widget(obj);",
+    "}",
+  ].join("\n");
+  const rendered = (renderWithShiki(code, "typescript", theme) ?? []).join("\n");
+
+  // Function and component names use the accent color.
+  assert.match(rendered, /\x1b\[38;2;114;190;255mgreet/);
+  assert.match(rendered, /\x1b\[38;2;114;190;255mWidget/);
+  // Aliases, constants, objects, and parameters use the punctuation/text color.
+  assert.match(rendered, /\x1b\[38;2;177;184;198m[^\x1b]*readFile/);
+  assert.match(rendered, /\x1b\[38;2;177;184;198m[^\x1b]*\bread\b/);
+  assert.match(rendered, /\x1b\[38;2;177;184;198m[^\x1b]*obj/);
+  assert.match(rendered, /\x1b\[38;2;177;184;198m[^\x1b]*user/);
+  // Object keys and typeof use the keyword color; properties stay variable-colored.
+  assert.match(rendered, /\x1b\[38;2;215;164;244mkey/);
+  assert.match(rendered, /\x1b\[38;2;215;164;244mtypeof/);
+  assert.match(rendered, /\x1b\[38;2;255;155;168mname/);
+  // Assignment operators keep the operator color.
+  assert.match(rendered, /\x1b\[38;2;88;201;195m=/);
 });
 
 function ruleForeground(

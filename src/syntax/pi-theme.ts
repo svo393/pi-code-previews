@@ -21,8 +21,9 @@ export type PiShikiTheme = {
 const piShikiThemeCache = new WeakMap<Theme, PiShikiTheme>();
 
 /**
- * Shiki/TextMate scopes for each syntax role exposed by pi themes. The mapping is based on
- * pi's own highlight.js-to-theme mapping so previews and pi's markdown code blocks agree.
+ * Shiki/TextMate scopes for each syntax role exposed by pi themes. The base mapping follows
+ * pi's own highlight.js-to-theme mapping; the extra JS/TS/JSX scopes mirror the VS Code
+ * `tokenColorCustomizations` overrides so previews and the editor agree.
  */
 const SCOPE_RULES: readonly ScopeRule[] = [
   {
@@ -65,6 +66,12 @@ const SCOPE_RULES: readonly ScopeRule[] = [
       "variable.language.self",
       "variable.language.super",
       "entity.name.tag",
+      "string.unquoted",
+      "keyword.operator.typeof",
+      "keyword.operator.expression.typeof",
+      "meta.embedded.expression",
+      "constant.other.object.key",
+      "meta.object-literal.key",
     ],
   },
   {
@@ -73,6 +80,7 @@ const SCOPE_RULES: readonly ScopeRule[] = [
       "entity.name.function",
       "entity.name.function.member",
       "support.function",
+      "support.class.component",
       "variable.function",
       "meta.function-call",
       "meta.function-call.generic",
@@ -102,12 +110,8 @@ const SCOPE_RULES: readonly ScopeRule[] = [
     scopes: [
       "variable",
       "variable.other",
-      "variable.parameter",
-      "variable.other.readwrite",
       "variable.other.property",
-      "variable.other.object",
       "support.variable",
-      "meta.object-literal.key",
       "entity.other.attribute-name",
     ],
   },
@@ -117,7 +121,20 @@ const SCOPE_RULES: readonly ScopeRule[] = [
   },
   {
     token: "syntaxPunctuation",
-    scopes: ["punctuation", "meta.brace", "meta.delimiter", "meta.bracket"],
+    scopes: [
+      "punctuation",
+      "meta.brace",
+      "meta.delimiter",
+      "meta.bracket",
+      "punctuation.section.embedded.begin",
+      "punctuation.section.embedded.end",
+      "variable.other.readwrite",
+      "variable.other.readwrite.alias",
+      "variable.other.constant",
+      "variable.other.constant.object",
+      "variable.other.object",
+      "variable.parameter",
+    ],
   },
 ];
 
